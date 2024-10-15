@@ -92,7 +92,7 @@ def plot_boundary(fname, fitted_estimator, X, y, mesh_step_size=0.1, title=""):
 
         plt.clim(np.min(Z), np.max(Z))
         plt.colorbar(cf)
-        plt.savefig('{}.pdf'.format(fname))
+        plt.savefig('{}.png'.format(fname))
 
         
 
