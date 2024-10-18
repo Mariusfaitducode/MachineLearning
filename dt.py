@@ -40,32 +40,54 @@ def run_experiments(depths, generations=5, n_points=1000):
     """
     Run experiments for different max_depth values and report accuracies.
     """
-    accuracies = {depth: [] for depth in depths}
+    # Numpy array containing accuracy values over the following dimensions
+    # The last dimension corresponds to the distinction between train accuracy and test accuracy
+    accuracies = np.zeros((len(depths), generations, 2))
     
-    for _ in range(generations):
+    for generation in range(generations):
         # Load dataset
         x, y = make_dataset(n_points)
         split = int(0.8 * len(x))
         x_train, x_test = x[:split], x[split:]
         y_train, y_test = y[:split], y[split:]
-        
 
-        for depth in depths:
+        for i_depth, depth in enumerate(depths):
             clf = train_decision_tree(x_train, y_train, depth)
-            cm, accuracy = evaluate_model(clf, x_test, y_test)
-            accuracies[depth].append(accuracy)
+            cm_test, accuracy_test = evaluate_model(clf, x_test, y_test)
+            cm_train, accuracy_train = evaluate_model(clf, x_train, y_train)
+            accuracies[i_depth, generation, 0] = accuracy_test
+            accuracies[i_depth, generation, 1] = accuracy_train
             
             # Plot decision boundary
             # X_train_2d = x_train.reshape(-1, 1) if x_train.ndim == 1 else x_train
-            plot_boundary('decision_tree_depth_{}'.format(depth), clf, x_train, y_train, mesh_step_size=0.1, title='Decision Tree with max_depth={}'.format(depth))
+            plot_boundary(f'results/dt_d{depth}', clf, x_train, y_train, mesh_step_size=0.1, title='Decision Tree with max_depth={}'.format(depth))
 
     # Calculate average and standard deviation of accuracies
-    for depth in depths:
-        mean_accuracy = np.mean(accuracies[depth])
-        std_accuracy = np.std(accuracies[depth])
-        print(f"Max Depth: {depth}, Average Accuracy: {mean_accuracy:.2f}, Std Dev: {std_accuracy:.2f}")
+    for i, depth in enumerate(depths):
+        # Using numpy broadcasting to compute mean and variation
+        test_mean_accuracy, train_mean_accuracy = np.mean(accuracies[i, :, :], axis=0)
+        test_std_accuracy, train_std_accuracy = np.std(accuracies[i, :, :], axis=0)
+        print(f"depth {depth}. Test [mean: {test_mean_accuracy:.2f}, std: {test_std_accuracy:.2f}]. Train [mean: {train_mean_accuracy:.2f}, std: {train_std_accuracy:.2f}]")
+
+    plt.figure(figsize=(12, 6))
+
+    labels = [str(depth) if depth is not None else 'Unspecified' for depth in depths]
+
+    plt.subplot(1, 2, 1)
+    plt.boxplot(accuracies[:, :, 0].T, tick_labels=labels)
+    plt.title(f'Test set accuracy over {generations} generations')
+    plt.xlabel('Depth')
+    plt.ylabel('Accuracy')
+
+    plt.subplot(1, 2, 2)
+    plt.boxplot(accuracies[:, :, 1].T, tick_labels=labels)
+    plt.title(f'Train set accuracy over {generations} generations')
+    plt.xlabel('Depth')
+    plt.ylabel('Accuracy')
 
 
+    plt.tight_layout()
+    plt.savefig(f'results/boxplots_accuracies_g{generations}.png')
 
 if __name__ == "__main__":
     max_depth_values = [1, 2, 4, 8, None]

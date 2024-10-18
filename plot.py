@@ -30,7 +30,7 @@ def make_cmaps():
     return bg_map, sc_map
 
 
-def plot_boundary(fname, fitted_estimator, X, y, mesh_step_size=0.1, title=""):
+def plot_boundary(save_path, fitted_estimator, X, y, mesh_step_size=0.1, title=""):
     """Plot estimator decision boundary and scatter points
 
     Parameters
@@ -92,7 +92,7 @@ def plot_boundary(fname, fitted_estimator, X, y, mesh_step_size=0.1, title=""):
 
         plt.clim(np.min(Z), np.max(Z))
         plt.colorbar(cf)
-        plt.savefig('{}.png'.format(fname))
+        plt.savefig(f'{save_path}.png')
 
         
 
