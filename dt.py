@@ -36,7 +36,7 @@ def evaluate_model(clf, X_test, y_test):
     return cm, accuracy
 
 
-def run_experiments(depths, generations=5, n_points=1000):
+def run_experiments(depths, generations=5, n_points=3000, split_ratio=1/3):
     """
     Run experiments for different max_depth values and report accuracies.
     """
@@ -47,7 +47,7 @@ def run_experiments(depths, generations=5, n_points=1000):
     for generation in range(generations):
         # Load dataset
         x, y = make_dataset(n_points)
-        split = int(0.8 * len(x))
+        split = int(split_ratio * len(x))
         x_train, x_test = x[:split], x[split:]
         y_train, y_test = y[:split], y[split:]
 
@@ -67,7 +67,7 @@ def run_experiments(depths, generations=5, n_points=1000):
         # Using numpy broadcasting to compute mean and variation
         test_mean_accuracy, train_mean_accuracy = np.mean(accuracies[i, :, :], axis=0)
         test_std_accuracy, train_std_accuracy = np.std(accuracies[i, :, :], axis=0)
-        print(f"depth {depth}. Test [mean: {test_mean_accuracy:.2f}, std: {test_std_accuracy:.2f}]. Train [mean: {train_mean_accuracy:.2f}, std: {train_std_accuracy:.2f}]")
+        print(f"depth {depth}. Test [mean: {test_mean_accuracy:.4f}, std: {test_std_accuracy:.4f}]. Train [mean: {train_mean_accuracy:.4f}, std: {train_std_accuracy:.4f}]")
 
     plt.figure(figsize=(12, 6))
 
@@ -84,7 +84,6 @@ def run_experiments(depths, generations=5, n_points=1000):
     plt.title(f'Train set accuracy over {generations} generations')
     plt.xlabel('Depth')
     plt.ylabel('Accuracy')
-
 
     plt.tight_layout()
     plt.savefig(f'results/boxplots_accuracies_g{generations}.png')
