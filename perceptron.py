@@ -15,19 +15,32 @@ from sklearn.base import BaseEstimator
 from sklearn.base import ClassifierMixin
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-
 # (Question 3): Perceptron
-
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
 
 class PerceptronClassifier(BaseEstimator, ClassifierMixin):
 
-    def __init__(self, n_iter=5, learning_rate=.0001):
+    def __init__(self, n_iter=5, n_weights=5, learning_rate=.0001, activation=sigmoid):
         self.n_iter = n_iter
+        self.threshold = 0.5
+        self.activation = activation
         self.learning_rate = learning_rate
-        self.w = None
-        self.b = None
+        self.b = np.random.normal(loc=0, scale=10**-4)
+        self.w = np.random.normal(loc=0, scale=10**-4, size=n_weights)
+        #self.w = np.zeros(shape=n_weights)
 
-    def fit(self, X, y):
+    def error(self, x, y_true, y_pred):
+        return x * (y_pred - y_true)
+
+    def epoch(self, X, y):
+        for x, y_true in zip(X, y):
+            y_pred = self.perceptron(x)
+            self.b -= self.learning_rate * (y_pred - y_true)
+            self.w -= self.learning_rate * self.error(x, y_true, y_pred)
+        return self
+
+    def fit(self, X, y) -> 'PerceptronClassifier':
         """Fit a perceptron model on (X, y)
 
         Parameters
@@ -44,9 +57,7 @@ class PerceptronClassifier(BaseEstimator, ClassifierMixin):
             Returns self.
         """
 
-        # Input validation
         X = np.asarray(X, dtype=np.float64)
-        n_instances, n_features = X.shape
 
         y = np.asarray(y)
         if y.shape[0] != X.shape[0]:
@@ -54,92 +65,92 @@ class PerceptronClassifier(BaseEstimator, ClassifierMixin):
 
         n_classes = len(np.unique(y))
         if n_classes != 2:
-            raise ValueError("This class is only dealing with binary "
-                             "classification problems")
-
-        # Initialize weights and bias
-        self.w = np.zeros(n_features)
-        self.b = 0
-
-        # Convert y to {-1, 1}
-        y = np.where(y == 0, -1, 1)
+            raise ValueError("This class is only dealing with binary classification problems")
 
         # Training loop
         for _ in range(self.n_iter):
-            for xi, yi in zip(X, y):
-                update = self.learning_rate * yi * (1 if np.dot(xi, self.w) + self.b <= 0 else 0)
-                self.w += update * xi
-                self.b += update
+            self.epoch(X, y)
 
         return self
 
     def predict(self, X):
-        """Predict class for X.
-
-        Parameters
-        ----------
-        X : array-like of shape = [n_samples, n_features]
-            The input samples.
-
-        Returns
-        -------
-        y : array of shape = [n_samples]
-            The predicted classes, or the predict values.
-        """
         X = np.asarray(X)
-        return np.where(np.dot(X, self.w) + self.b >= 0, 1, 0)
+        return np.where(self.perceptron(X) >= self.threshold, 1, 0)
+
+    def perceptron(self, X):
+        return self.activation(np.dot(X, self.w) + self.b)
 
     def predict_proba(self, X):
-        """Return probability estimates for the test data X.
-
-        Parameters
-        ----------
-        X : array-like of shape = [n_samples, n_features]
-            The input samples.
-
-        Returns
-        -------
-        p : array of shape = [n_samples, n_classes]
-            The class probabilities of the input samples. Classes are ordered
-            by lexicographic order.
-        """
         X = np.asarray(X)
-        scores = np.dot(X, self.w) + self.b
-        
-        # Clip scores to avoid overflow
-
-        # We clip the scores to a range that won't cause overflow in the exponential function.
-        # The maximum value that can be safely exponentiated for a 64-bit float is approximately e^709, 
-        # so we clip the scores to the range [-709, 709].
-        # By clipping the scores, we ensure that the exponential function won't overflow, 
-        # and the probability calculation will be stable.
-
-        scores = np.clip(scores, -709, 709)  # log(np.finfo(np.float64).max) ≈ 709
-        
-        probs = 1 / (1 + np.exp(-scores))
+        probs = self.perceptron(X)
         return np.column_stack((1 - probs, probs))
+
 
 if __name__ == "__main__":
     # Generate a dataset
-    X, y = make_dataset(n_points=1000)
-
+    split_ratio = 1/3
+    generations = 5
+    n_epochs = 5
+    n_points = 3_000
+    X, y = make_dataset(n_points=n_points, class_prop=.25)
     # Split the dataset
-    split = int(0.8 * len(X))
+    split = int(split_ratio * len(X))
+
     X_train, X_test = X[:split], X[split:]
     y_train, y_test = y[:split], y[split:]
 
     # Train the perceptron
-    clf = PerceptronClassifier(n_iter=100, learning_rate=0.01)
-    clf.fit(X_train, y_train)
+    learning_rates = [10**-4, 5*10**-4, 10**-3, 10**-2, 10**-1]
 
-    # Evaluate the model
-    y_pred = clf.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    cm = confusion_matrix(y_test, y_pred)
+    accuracies = np.zeros((len(learning_rates), generations, n_epochs, 2))
+    for generation in range(generations):
+        # Load dataset
+        x, y = make_dataset(n_points)
+        split = int(split_ratio * len(x))
+        x_train, x_test = x[:split], x[split:]
+        y_train, y_test = y[:split], y[split:]
 
-    print(f"Accuracy: {accuracy:.4f}")
-    print("Confusion Matrix:")
-    print(cm)
+        for i_lr, lr in enumerate(learning_rates):
+            clf = PerceptronClassifier(n_iter=n_epochs, n_weights=X.shape[1], learning_rate=lr)
 
-    # Plot decision boundary
-    plot_boundary("perceptron", clf, X, y, mesh_step_size=0.1, title="Perceptron Decision Boundary")
+            for epoch in range(n_epochs):
+                clf = clf.epoch(x_train, y_train)
+                y_test_pred = clf.predict(x_test)
+                y_train_pred = clf.predict(x_train)
+                accuracies[i_lr, generation, epoch,  0] = accuracy_score(y_true=y_test, y_pred=y_test_pred)
+                accuracies[i_lr, generation, epoch, 1] = accuracy_score(y_true=y_train, y_pred=y_train_pred)
+
+            # Plot decision boundary
+            plot_boundary(
+                f'perceptron_lr_{lr}',
+                clf,
+                x_train,
+                y_train,
+                mesh_step_size=0.1,
+                title=f'Perceptron with learning_rate={lr}'
+            )
+
+    labels = [str(lr) if lr is not None else 'Unspecified' for lr in learning_rates]
+
+    plt.figure(figsize=(12, 6))
+
+    # LS accuracies plot
+    plt.subplot(1, 2, 1)
+    for i, lr in enumerate(learning_rates):
+        plt.plot(labels, accuracies[i, :, :, 0].mean(axis=0), marker='o', label=f"lr = {lr}")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title(f"LS mean accuracy ({generations} generations) over epoch")
+    plt.legend()
+
+    # TS accuracies plot
+    plt.subplot(1, 2, 2)
+    for i, lr in enumerate(learning_rates):
+        plt.plot(range(n_epochs), accuracies[i, :, :, 1].mean(axis=0), marker='o', label=f"lr = {lr}")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
+    plt.title(f"TS mean accuracy ({generations} generations) over epoch")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig(f'results/perceptron_boxplots_accuracies_g{generations}.png')
