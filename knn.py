@@ -59,7 +59,6 @@ def run_experiments(n_neighbors_list, generations=5, n_points=3000, split_ratio=
             # plot_boundary(f'test_knn_neighbors_{n_neighbors}', clf, x_test, y_test, mesh_step_size=0.1, title=f'KNN with n_neighbors={n_neighbors}')
 
     # Calculate average and standard deviation of accuracies
-    print(accuracies)
     for i, n_neighbors in enumerate(n_neighbors_list):
         # Using numpy broadcasting to compute mean and variation
         test_mean_accuracy, train_mean_accuracy = np.mean(accuracies[i, :, :], axis=0)

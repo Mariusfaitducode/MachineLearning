@@ -1,10 +1,10 @@
 import numpy as np
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import Perceptron
 from sklearn.model_selection import train_test_split, cross_val_score
 from sklearn.metrics import accuracy_score
 from data import make_dataset
+from perceptron import PerceptronClassifier
 
 
 def tune_hyperparameters(X, y, model, param_grid):
@@ -34,28 +34,25 @@ def evaluate_model(X, y, model, n_iterations=5):
     
     return np.mean(accuracies), np.std(accuracies)
 
-def compare_methods(n_iterations=5, n_irrelevant=0):
-    # Generate dataset
-    X, y = make_dataset(n_points=1000, n_irrelevant=n_irrelevant)
+def compare_methods(generations=5, n_iterations=5, n_irrelevant=0):
+    X, y = make_dataset(n_points=3000, n_irrelevant=n_irrelevant)
     
     # Define models and parameter grids
     models = {
         'Decision Tree': (DecisionTreeClassifier(), {'max_depth': [3, 5, 7, 10, None]}),
         'K-Nearest Neighbors': (KNeighborsClassifier(), {'n_neighbors': [3, 5, 7, 11, 15]}),
-        'Perceptron': (Perceptron(), {'eta0': [0.1, 0.01, 0.001, 0.0001]})
+        'Perceptron': (PerceptronClassifier(n_iter=5, n_weights=2), {'learning_rate': [0.1, 0.01, 0.001, 0.0001]})
     }
     
-    results = {}
-    
-    for name, (model, param_grid) in models.items():
-        best_params = tune_hyperparameters(X, y, model, param_grid)
-        model.set_params(**best_params)
-        mean_accuracy, std_accuracy = evaluate_model(X, y, model, n_iterations)
-        results[name] = {
-            'best_params': best_params,
-            'mean_accuracy': mean_accuracy,
-            'std_accuracy': std_accuracy
-        }
+    results = {'best_params': [], 'mean_accuracy': [], 'std_accuracy': []}
+    for generation in range(generations):
+        for name, (model, param_grid) in models.items():
+            best_params = tune_hyperparameters(X, y, model, param_grid)
+            model.set_params(**best_params)
+            mean_accuracy, std_accuracy = evaluate_model(X, y, model, n_iterations)
+            results['best_params'] += [best_params]
+            results['mean_accuracy'] += [mean_accuracy]
+            results['std_accuracy'] += [std_accuracy]
     
     return results
 

@@ -21,15 +21,16 @@ def sigmoid(x):
 
 class PerceptronClassifier(BaseEstimator, ClassifierMixin):
 
-    def __init__(self, n_iter=5, n_weights=5, learning_rate=.0001, activation=sigmoid):
+    def __init__(self, n_iter=5, n_weights=2, learning_rate=.0001, activation=sigmoid):
         self.n_iter = n_iter
+        self.n_weights = n_weights
         self.threshold = 0.5
         self.activation = activation
         self.learning_rate = learning_rate
         self.b = np.random.normal(loc=0, scale=10**-4)
         self.w = np.random.normal(loc=0, scale=10**-4, size=n_weights)
-        # self.w = np.zeros(shape=n_weights)
-        # self.b = 0
+        #self.w = np.zeros(shape=n_weights)
+        #self.b = 0
 
     def error(self, x, y_true, y_pred):
         return x * (y_pred - y_true)
@@ -87,13 +88,13 @@ class PerceptronClassifier(BaseEstimator, ClassifierMixin):
     def predict_proba(self, X):
         X = np.asarray(X)
         probs = self.perceptron(X)
-        return np.column_stack((1 - probs, probs))
+        return np.column_stack((probs, 1 - probs))
 
 
 if __name__ == "__main__":
     # Generate a dataset
     split_ratio = 1/3
-    generations = 1
+    generations = 5
     n_epochs = 5
     n_points = 3_000
     X, y = make_dataset(n_points=n_points, class_prop=.25)
@@ -134,6 +135,8 @@ if __name__ == "__main__":
                 title=f'Perceptron with learning_rate={lr}'
             )
 
+
+    print(accuracies[:, :, -1, :], accuracies[:, :, -1, :].var(axis=0), accuracies[:, :, -1, :].mean(axis=0))
     labels = [str(lr) if lr is not None else 'Unspecified' for lr in learning_rates]
     fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(12, 6))
 
