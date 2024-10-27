@@ -1,0 +1,142 @@
+% Préambule : Configuration du document
+\documentclass[12pt,a4paper]{report}  % Type de document, taille de police et format papier
+
+% Packages essentiels
+\usepackage[utf8]{inputenc}           % Pour les caractères accentués
+\usepackage[T1]{fontenc}              % Pour la police
+\usepackage[french]{babel}            % Pour la langue française
+\usepackage{graphicx}                 % Pour insérer des images
+\usepackage{amsmath,amsthm,amssymb}   % Pour les formules mathématiques
+\usepackage{hyperref}                 % Pour les liens hypertextes
+\usepackage{listings}                 % Pour insérer du code
+\usepackage{xcolor}                   % Pour la couleur
+\usepackage{geometry}                 % Pour les marges
+\usepackage{fancyhdr}                 % Pour les en-têtes et pieds de page
+\usepackage{titlesec}                 % Pour personnaliser les titres
+\usepackage{tocloft}                  % Pour personnaliser la table des matières
+
+% Configuration des marges
+\geometry{
+    top=2.5cm,
+    bottom=2.5cm,
+    left=2.5cm,
+    right=2.5cm
+}
+
+% Configuration des en-têtes et pieds de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% Configuration pour le code
+\lstset{
+    frame=single,
+    breaklines=true,
+    postbreak=\raisebox{0ex}[0ex][0ex]{\ensuremath{\color{red}\hookrightarrow\space}},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{green!60!black},
+    stringstyle=\color{orange}
+}
+
+% Informations du document
+\title{{\Huge Titre du Rapport}\\[0.5cm]
+       {\large Sous-titre}}
+\author{Votre Nom\\
+        \texttt{votre.email@domain.com}}
+\date{\today}
+
+% Début du document
+\begin{document}
+
+% Page de titre
+\maketitle
+
+% Page de déclaration/copyright (optionnel)
+\clearpage
+\thispagestyle{empty}
+\vspace*{\fill}
+\begin{center}
+    \textcopyright{} 2024 - Tous droits réservés\\
+    [Nom de votre organisation]
+\end{center}
+\vspace*{\fill}
+\clearpage
+
+% Table des matières
+\tableofcontents
+\clearpage
+
+% Liste des figures (si nécessaire)
+\listoffigures
+\clearpage
+
+% Liste des tableaux (si nécessaire)
+\listoftables
+\clearpage
+
+% Introduction
+\chapter{Introduction}
+\section{Contexte}
+Écrivez votre contexte ici.
+
+\section{Objectifs}
+Listez vos objectifs ici.
+
+% Corps du rapport
+\chapter{État de l'art}
+\section{Section 1}
+Voici un exemple de texte avec une citation\cite{reference1}.
+
+% Comment insérer une image
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{chemin/vers/image}
+    \caption{Description de l'image}
+    \label{fig:exemple}
+\end{figure}
+
+% Comment insérer un tableau
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        \hline
+        Colonne 1 & Colonne 2 & Colonne 3 \\
+        \hline
+        Valeur 1 & Valeur 2 & Valeur 3 \\
+        \hline
+    \end{tabular}
+    \caption{Description du tableau}
+    \label{tab:exemple}
+\end{table}
+
+% Comment insérer une équation
+\begin{equation}
+    E = mc^2
+    \label{eq:einstein}
+\end{equation}
+
+% Comment insérer du code
+\begin{lstlisting}[language=Python, caption=Exemple de code Python]
+def hello_world():
+    print("Hello, World!")
+\end{lstlisting}
+
+% Conclusion
+\chapter{Conclusion}
+Écrivez votre conclusion ici.
+
+% Bibliographie
+\bibliographystyle{plain}
+\bibliography{references}  % Fichier references.bib
+
+% Annexes
+\appendix
+\chapter{Annexe A}
+Contenu de l'annexe A.
+
+\end{document}
