@@ -28,13 +28,17 @@ class PerceptronClassifier(BaseEstimator, ClassifierMixin):
         self.learning_rate = learning_rate
         self.b = np.random.normal(loc=0, scale=10**-4)
         self.w = np.random.normal(loc=0, scale=10**-4, size=n_weights)
-        #self.w = np.zeros(shape=n_weights)
+        # self.w = np.zeros(shape=n_weights)
+        # self.b = 0
 
     def error(self, x, y_true, y_pred):
         return x * (y_pred - y_true)
 
     def epoch(self, X, y):
-        for x, y_true in zip(X, y):
+        random_indices = np.random.permutation(len(X))
+        for i in random_indices:
+            x, y_true = X[i], y[i]
+        #for x, y_true in zip(X, y):
             y_pred = self.perceptron(x)
             self.b -= self.learning_rate * (y_pred - y_true)
             self.w -= self.learning_rate * self.error(x, y_true, y_pred)
@@ -89,7 +93,7 @@ class PerceptronClassifier(BaseEstimator, ClassifierMixin):
 if __name__ == "__main__":
     # Generate a dataset
     split_ratio = 1/3
-    generations = 5
+    generations = 1
     n_epochs = 5
     n_points = 3_000
     X, y = make_dataset(n_points=n_points, class_prop=.25)
@@ -131,26 +135,22 @@ if __name__ == "__main__":
             )
 
     labels = [str(lr) if lr is not None else 'Unspecified' for lr in learning_rates]
-
-    plt.figure(figsize=(12, 6))
+    fig, (ax1, ax2) = plt.subplots(1, 2, sharey=True, figsize=(12, 6))
 
     # LS accuracies plot
-    plt.subplot(1, 2, 1)
     for i, lr in enumerate(learning_rates):
-        plt.plot(labels, accuracies[i, :, :, 0].mean(axis=0), marker='o', label=f"lr = {lr}")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.title(f"LS mean accuracy ({generations} generations) over epoch")
-    plt.legend()
+        ax1.plot(range(n_epochs), accuracies[i, :, :, 0].mean(axis=0), marker='o', label=f"lr = {lr}")
+    ax1.set_xlabel("Epoch")
+    ax1.set_ylabel("Accuracy")
+    ax1.set_title(f"LS mean accuracy ({generations} generations) over epoch")
 
     # TS accuracies plot
-    plt.subplot(1, 2, 2)
     for i, lr in enumerate(learning_rates):
-        plt.plot(range(n_epochs), accuracies[i, :, :, 1].mean(axis=0), marker='o', label=f"lr = {lr}")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.title(f"TS mean accuracy ({generations} generations) over epoch")
-    plt.legend()
+        ax2.plot(range(n_epochs), accuracies[i, :, :, 1].mean(axis=0), marker='o', label=f"lr = {lr}")
+    ax2.set_xlabel("Epoch")
+    ax2.set_ylabel("Accuracy")
+    ax2.set_title(f"TS mean accuracy ({generations} generations) over epoch")
 
+    plt.legend(loc='lower right')
     plt.tight_layout()
-    plt.savefig(f'results/perceptron_boxplots_accuracies_g{generations}.png')
+    plt.savefig(f'results/perceptron_accuracies_g{generations}.png')
