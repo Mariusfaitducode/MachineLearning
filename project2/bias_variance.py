@@ -71,7 +71,7 @@ def evaluate_model_complexity(
     create_model: Callable,
     param_range: list,
     param_name: str,
-    n_samples: int = 250,
+    n_samples: int = 1000,
     n_iterations: int = 100
 ) -> tuple:
     """
