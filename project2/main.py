@@ -1,20 +1,20 @@
 import numpy as np
 from data import load_wine_quality
-from bias_variance import evaluate_model_complexity, plot_bias_variance_trade_off
+from bias_variance import evaluate_model_complexity, plot_bias_variance_trade_off, plot_bias_variance_trade_off_lasso
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import Lasso
 from sklearn.tree import DecisionTreeRegressor
 
-# 1. Chargement des données
-print("Chargement des données...")
+# 1. Loading data
+print("Loading data...")
 X, y = load_wine_quality()
 
-# 2. Configuration des paramètres généraux
-N_SAMPLES = 250  # Taille de l'échantillon d'apprentissage
-N_ITERATIONS = 500  # Nombre d'itérations pour l'estimation
+# 2. General parameters configuration
+N_SAMPLES = 250  # Learning sample size
+N_ITERATIONS = 100  # Number of iterations for estimation
 
-# 3. Analyse du k-NN
-print("\n=== Analyse k-NN ===")
+# 3. k-NN analysis
+print("\n=== k-NN Analysis ===")
 def create_knn(k):
     return KNeighborsRegressor(n_neighbors=k)
 
@@ -33,11 +33,11 @@ plot_bias_variance_trade_off(
     knn_errors,
     knn_variances,
     knn_bias_residuals,
-    'Nombre de voisins (k)'
+    'Number of neighbors (k)'
 )
 
-# 4. Analyse du Lasso
-print("\n=== Analyse Lasso ===")
+# 4. Lasso analysis
+print("\n=== Lasso Analysis ===")
 def create_lasso(alpha):
     return Lasso(alpha=alpha, max_iter=10000)
 
@@ -51,16 +51,16 @@ lasso_errors, lasso_variances, lasso_bias_residuals = evaluate_model_complexity(
     n_iterations=N_ITERATIONS
 )
 
-plot_bias_variance_trade_off(
+plot_bias_variance_trade_off_lasso(
     alpha_range,
     lasso_errors,
     lasso_variances,
     lasso_bias_residuals,
-    'Paramètre de régularisation (alpha)'
+    'Regularization parameter (alpha)'
 )
 
-# 5. Analyse des arbres de décision
-print("\n=== Analyse des arbres de décision ===")
+# 5. Decision trees analysis
+print("\n=== Decision Trees Analysis ===")
 def create_tree(max_depth):
     return DecisionTreeRegressor(max_depth=max_depth)
 
@@ -79,11 +79,11 @@ plot_bias_variance_trade_off(
     tree_errors,
     tree_variances,
     tree_bias_residuals,
-    'Profondeur maximale'
+    'Maximum depth'
 )
 
-# 6. Sauvegarde des résultats
-print("\n=== Sauvegarde des résultats ===")
+# 6. Saving results
+print("\n=== Saving Results ===")
 results = {
     'knn': {
         'params': k_range,
@@ -106,4 +106,4 @@ results = {
 }
 
 np.save('results.npy', results)
-print("Résultats sauvegardés dans 'results.npy'") 
+print("Results saved in 'results.npy'") 

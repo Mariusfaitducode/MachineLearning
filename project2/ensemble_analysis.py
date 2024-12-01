@@ -11,7 +11,7 @@ X, y = load_wine_quality()
 # Configuration
 N_SAMPLES = 250
 N_ITERATIONS = 100
-n_estimators_range = [1, 5, 10, 20, 50, 100, 200]
+n_estimators_range = [1, 5, 10, 20, 50, 100]
 max_depths = [3, None]  # Test avec arbres contraints et non contraints
 
 def analyze_ensemble_methods():
@@ -67,6 +67,22 @@ np.save('ensemble_results.npy', results)
 
 # Visualisation
 def plot_ensemble_results(results, method, depth):
+
+    # Paramètres utilisés dans l'analyse
+    n_estimators_range = [1, 5, 10, 20, 50, 100]
+    max_depths = [2, 3, None]
+    N_SAMPLES = 250
+    N_ITERATIONS = 100
+    
+    print(f"\nRésultats pour {method.capitalize()} (max_depth={depth}):")
+    print("  n_estimators | Erreur    | Variance  | Biais² + Résiduel")
+    print("  -------------|-----------|-----------|------------------")
+    for i, n_est in enumerate(n_estimators_range):
+        error = results[method][depth]['errors'][i]
+        variance = results[method][depth]['variances'][i] 
+        bias_res = results[method][depth]['bias_residuals'][i]
+        print(f"  {n_est:>11} |    {error:.4f} |    {variance:.4f} |    {bias_res:.4f}")
+
     plt.figure(figsize=(10, 6))
     plt.plot(n_estimators_range, results[method][depth]['errors'], 'r-', 
              label='Expected Error')
@@ -76,7 +92,7 @@ def plot_ensemble_results(results, method, depth):
              label='Bias² + Residual')
     
     depth_str = str(depth) if depth else "None"
-    plt.title(f'{method.capitalize()} - Profondeur {depth_str}')
+    plt.title(f'{method.capitalize()} - Depth {depth_str}')
     plt.xlabel("Nombre d'estimateurs")
     plt.ylabel('Erreur')
     plt.xscale('log')

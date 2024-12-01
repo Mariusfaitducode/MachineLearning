@@ -136,3 +136,40 @@ def plot_bias_variance_trade_off(
     plt.title(f'Bias-Variance Trade-off vs {param_name}')
     plt.grid(True)
     plt.show() 
+
+
+def plot_bias_variance_trade_off_lasso(
+    param_range: list,
+    errors: np.ndarray,
+    variances: np.ndarray,
+    bias_residuals: np.ndarray,
+    param_name: str,
+    log_scale: bool = True  # Nouveau paramètre
+):
+    """
+    Visualise le compromis biais-variance en fonction d'un paramètre.
+    
+    Args:
+        param_range: Liste des valeurs du paramètre
+        errors: Tableau des erreurs
+        variances: Tableau des variances
+        bias_residuals: Tableau des biais² + résiduels
+        param_name: Nom du paramètre (pour l'affichage)
+        log_scale: Si True, utilise une échelle logarithmique pour l'axe x
+    """
+    import matplotlib.pyplot as plt
+    
+    plt.figure(figsize=(10, 6))
+    plt.plot(param_range, errors, 'r-', label='Expected Error')
+    plt.plot(param_range, variances, 'b-', label='Variance')
+    plt.plot(param_range, bias_residuals, 'g-', label='Bias² + Residual')
+    
+    if log_scale:
+        plt.xscale('log')  # Échelle logarithmique pour l'axe x
+        
+    plt.xlabel(param_name)
+    plt.ylabel('Error')
+    plt.legend()
+    plt.title(f'Bias-Variance Trade-off vs {param_name}')
+    plt.grid(True)
+    plt.show()

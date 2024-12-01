@@ -89,4 +89,12 @@ def plot_sample_size_results(results, model_name):
 
 # Visualisation pour chaque modèle
 for model in ['knn', 'lasso', 'tree_fixed', 'tree_full']:
+
+    print(f"\nRésultats pour {model}:")
+    print("  Taille échantillon | Erreur    | Variance  | Biais² + Résiduel")
+    print("  --------------------|-----------|-----------|------------------")
+    for i, size in enumerate(sample_sizes):
+        print(f"  {size:>16d} | {results[model]['errors'][i]:9.4f} | "
+              f"{results[model]['variances'][i]:9.4f} | "
+              f"{results[model]['bias_residuals'][i]:9.4f}")
     plot_sample_size_results(results, model) 
