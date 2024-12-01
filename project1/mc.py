@@ -41,7 +41,7 @@ def compare_methods(generations=5, n_iterations=5, n_irrelevant=0):
     models = {
         'Decision Tree': (DecisionTreeClassifier(), {'max_depth': [3, 5, 7, 10, None]}),
         'K-Nearest Neighbors': (KNeighborsClassifier(), {'n_neighbors': [3, 5, 7, 11, 15]}),
-        'Perceptron': (PerceptronClassifier(n_iter=5, n_weights=2), {'learning_rate': [0.1, 0.01, 0.001, 0.0001]})
+        'Perceptron': (PerceptronClassifier(n_iter=5, n_weights=X.shape[1]), {'learning_rate': [0.1, 0.01, 0.001, 0.0001]})
     }
     
     results = {'best_params': [], 'mean_accuracy': [], 'std_accuracy': []}
