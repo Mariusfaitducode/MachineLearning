@@ -9,25 +9,11 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from toy_script import load_data
+from data_extraction.preprocessing import Preprocessor
 
 class DataAnalyzer:
     def __init__(self, X_train, y_train, X_test, subject_ids_train, subject_ids_test):
-        self.X_train = X_train
-        self.y_train = y_train
-        self.X_test = X_test
-        self.subject_ids_train = subject_ids_train
-        self.subject_ids_test = subject_ids_test
-        
-        # Définition correcte des activités selon le rapport
-        self.activity_names = {
-            1: 'Lying', 2: 'Sitting', 3: 'Standing', 4: 'Walking very slow',
-            5: 'Normal walking', 6: 'Nordic walking', 7: 'Running', 
-            8: 'Ascending stairs', 9: 'Descending stairs', 10: 'Cycling',
-            11: 'Ironing', 12: 'Vacuum cleaning', 13: 'Rope jumping', 
-            14: 'Playing soccer'
-        }
-        
-        # Définition des groupes de capteurs
+        # Définition des groupes de capteurs en premier
         self.sensor_groups = {
             'Heart': [2],
             'Hand': {
@@ -49,9 +35,62 @@ class DataAnalyzer:
                 'Magnetometer': [30, 31, 32]
             }
         }
+
+        self.preprocessor = Preprocessor()
+        
+        # Prétraiter les données d'entraînement
+        print("Prétraitement des données...")
+        self.X_train = self._preprocess_all_data(X_train)
+        self.X_test = self._preprocess_all_data(X_test)
+        
+        # Reste des initialisations
+        self.y_train = y_train
+        self.subject_ids_train = subject_ids_train
+        self.subject_ids_test = subject_ids_test
+        
+        # Définition des activités
+        self.activity_names = {
+            1: 'Lying', 2: 'Sitting', 3: 'Standing', 4: 'Walking very slow',
+            5: 'Normal walking', 6: 'Nordic walking', 7: 'Running', 
+            8: 'Ascending stairs', 9: 'Descending stairs', 10: 'Cycling',
+            11: 'Ironing', 12: 'Vacuum cleaning', 13: 'Rope jumping', 
+            14: 'Playing soccer'
+        }
         
         os.makedirs('project3/data_analysis', exist_ok=True)
 
+    def _preprocess_all_data(self, X):
+        """Prétraite toutes les données par type de capteur"""
+        X_processed = np.copy(X)
+        
+        for location, sensors in self.sensor_groups.items():
+            if location == 'Heart':
+                # Traiter le capteur cardiaque
+                start = (sensors[0] - 2) * 512
+                end = start + 512
+                X_processed[:, start:end] = self._process_sensor_data(
+                    X[:, start:end], 'Heart'
+                )
+            else:
+                # Traiter les autres capteurs
+                for sensor_type, sensor_ids in sensors.items():
+                    for sensor_id in sensor_ids:
+                        start = (sensor_id - 2) * 512
+                        end = start + 512
+                        X_processed[:, start:end] = self._process_sensor_data(
+                            X[:, start:end], sensor_type
+                        )
+        
+        return X_processed
+    
+    def _process_sensor_data(self, data, sensor_type):
+        """Applique le prétraitement à un bloc de données d'un capteur"""
+        # Traiter chaque échantillon
+        processed_data = np.array([
+            self.preprocessor.process(sample, sensor_type)
+            for sample in data
+        ])
+        return processed_data
 
     def plot_activity_distribution(self):
         """
@@ -637,8 +676,7 @@ class DataAnalyzer:
         """
         Exécute l'analyse complète des données
         """
-        print("=== Début de l'analyse complète des données ===")
-        
+        print("=== Début de l'analyse complète des données ===")        
         self.plot_missing_data()
         self.plot_activity_by_subject()
         

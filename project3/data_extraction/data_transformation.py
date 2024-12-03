@@ -11,6 +11,9 @@ from toy_script import load_data
 from feature_extractor import FeatureExtractor
 from preprocessing import Preprocessor
 from visualizer import Visualizer
+from timing_decorator import timing_decorator
+from tqdm import tqdm
+
 
 class DataTransformer:
     def __init__(self, X_train, y_train, X_test):
@@ -52,73 +55,92 @@ class DataTransformer:
             }
         }
 
+    # @timing_decorator
     def transform_data(self):
-        """Transforme les données en extrayant les caractéristiques"""
-        feature_names = []
+        print("Starting data transformation...")
         transformed_data = []
+        feature_names = []
         
-        for sample in self.X_train:
+        total_samples = len(self.X_train)
+        
+        # Utiliser tqdm pour la barre de progression
+        for i in tqdm(range(total_samples), desc="Transforming data"):
+            sample = self.X_train[i]
             sample_features = []
             for location, sensors in self.sensor_groups.items():
                 self._process_sensor_group(sample, location, sensors, 
                                         sample_features, feature_names)
             transformed_data.append(sample_features)
         
+        print("Data transformation completed")
         return np.array(transformed_data), feature_names
     
+    # @timing_decorator
     def _process_sensor_group(self, sample, location, sensors, 
-                            sample_features, feature_names):
-        """Traite un groupe de capteurs"""
+                             sample_features, feature_names):
+        """
+        Traite un groupe de capteurs de manière unifiée
+        
+        Args:
+            sample: Données brutes d'un échantillon
+            location: Emplacement du capteur (Heart, Hand, Chest, Foot)
+            sensors: Configuration des capteurs (liste ou dictionnaire)
+            sample_features: Liste des caractéristiques extraites
+            feature_names: Liste des noms des caractéristiques
+        """
         if isinstance(sensors, list):
             # Cas du capteur cardiaque (Heart)
-            for sensor_id in sensors:
-                start = (sensor_id - 2) * 512
-                end = start + 512
-                features = self.feature_extractor.extract_statistical_features(
-                    sample[start:end]
-                )
-                sample_features.extend(features)
-                if len(feature_names) < len(sample_features):
-                    feature_names.extend(self.feature_extractor.get_feature_names(
-                        location
-                    ))
+            sensor_configs = [('', sensors[0], None)]
         else:
             # Cas des autres capteurs (Hand, Chest, Foot)
+            sensor_configs = []
             for sensor_type, sensor_ids in sensors.items():
                 if sensor_type == 'Temperature':
-                    # Cas de la température (une seule valeur)
-                    start = (sensor_ids[0] - 2) * 512
-                    end = start + 512
-                    features = self.feature_extractor.extract_statistical_features(
-                        sample[start:end]
-                    )
-                    sample_features.extend(features)
-                    if len(feature_names) < len(sample_features):
-                        feature_names.extend(self.feature_extractor.get_feature_names(
-                            location, sensor_type
-                        ))
+                    sensor_configs.append((sensor_type, sensor_ids[0], None))
                 else:
-                    # Cas des capteurs avec axes (Acceleration, Gyroscope, Magnetometer)
-                    axes = ['x', 'y', 'z']
-                    for axis, sensor_id in zip(axes, sensor_ids):
-                        start = (sensor_id - 2) * 512
-                        end = start + 512
-                        features = self.feature_extractor.extract_statistical_features(
-                            sample[start:end]
-                        )
-                        sample_features.extend(features)
-                        if len(feature_names) < len(sample_features):
-                            feature_names.extend(self.feature_extractor.get_feature_names(
-                                location, sensor_type, axis
-                            ))
+                    # Capteurs avec axes (Acceleration, Gyroscope, Magnetometer)
+                    sensor_configs.extend([
+                        (sensor_type, sensor_id, axis)
+                        for sensor_id, axis in zip(sensor_ids, ['x', 'y', 'z'])
+                    ])
+        
+        # Traitement unifié pour tous les types de capteurs
+        for sensor_type, sensor_id, axis in sensor_configs:
+            # Extraction des données du capteurq
+            start = (sensor_id - 2) * 512
+            end = start + 512
+            raw_data = sample[start:end]
+            
+            # ! Prétraitement des données
+            # cleaned_data = self.preprocessor.process(raw_data, sensor_type)
+
+            # print(f"Raw data shape: {raw_data.shape}")
+            # print('extract features code now')            
+            # Extraction des caractéristiques sur les données nettoyées
+            features = self.feature_extractor.extract_features(raw_data)
+            sample_features.extend(features)
+            
+            # Ajout des noms de caractéristiques si nécessaire
+            if len(feature_names) < len(sample_features):
+                feature_names.extend(self.feature_extractor.get_feature_names(
+                    location, sensor_type, axis
+                ))
+
+    def save_transformed_data_csv(self, transformed_data, feature_names, filename='transformed_data.csv'):
+        """Sauvegarde les données transformées au format CSV"""
+        df = pd.DataFrame(transformed_data, columns=feature_names)
+        df.to_csv(filename, index=False)
+        print(f"Transformed data saved to {filename}")
 
 def main():
     # Load full dataset
-    X_train, y_train, X_test, subject_ids_train, subject_ids_test = load_data(max_size=None)
+    X_train, y_train, X_test, subject_ids_train, subject_ids_test = load_data(max_size=100)
 
     transformer = DataTransformer(X_train, y_train, X_test)
     transformed_data, feature_names = transformer.transform_data()
     transformer.visualizer.visualize_features(transformed_data, feature_names, [transformer.activity_names[y] for y in y_train])
+
+    transformer.save_transformed_data_csv(transformed_data, feature_names)
 
 if __name__ == "__main__":
     main()
