@@ -61,11 +61,11 @@ class DataTransformer:
         transformed_data = []
         feature_names = []
         
-        total_samples = len(self.X_train)
+        total_samples = len(self.X_test)
         
         # Utiliser tqdm pour la barre de progression
         for i in tqdm(range(total_samples), desc="Transforming data"):
-            sample = self.X_train[i]
+            sample = self.X_test[i]
             sample_features = []
             for location, sensors in self.sensor_groups.items():
                 self._process_sensor_group(sample, location, sensors, 
@@ -134,7 +134,7 @@ class DataTransformer:
 
 def main():
     # Load full dataset
-    X_train, y_train, X_test, subject_ids_train, subject_ids_test = load_data(max_size=100)
+    X_train, y_train, X_test, subject_ids_train, subject_ids_test = load_data(max_size=None)
 
     transformer = DataTransformer(X_train, y_train, X_test)
     transformed_data, feature_names = transformer.transform_data()

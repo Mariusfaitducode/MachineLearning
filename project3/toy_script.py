@@ -3,6 +3,7 @@
 
 import os
 import numpy as np
+import pandas as pd
 
 from sklearn.neighbors import KNeighborsClassifier
 
@@ -72,6 +73,7 @@ def write_submission(y, submission_path='example_submission.csv'):
             file.write('{},{}\n'.format(n+1, int(i)))
 
     print(f'Submission saved to {submission_path}.')
+
 
 if __name__ == '__main__':
     X_train, y_train, X_test, subject_ids_train, subject_ids_test = load_data()
