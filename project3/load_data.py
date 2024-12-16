@@ -55,6 +55,8 @@ def load_transformed_data(data_path=None, max_size=None):
     transformed_train_data_df = pd.read_csv(transformed_train_data_path)
     X_train = transformed_train_data_df.values
 
+    feature_names = list(transformed_train_data_df.columns)
+
     transformed_test_data_path = os.path.join(data_path, 'transformed_test_data.csv')
     transformed_test_data_df = pd.read_csv(transformed_test_data_path)
     X_test = transformed_test_data_df.values
@@ -69,4 +71,4 @@ def load_transformed_data(data_path=None, max_size=None):
     print('X_train size: {}.'.format(X_train.shape))
     print('y_train size: {}.'.format(y_train.shape))
 
-    return X_train, y_train, X_test
+    return X_train, y_train, X_test, feature_names

@@ -129,7 +129,24 @@ class FeatureExtractor:
     
     # @timing_decorator
     def _extract_trend_features(self, data):
-        """Extrait les caractéristiques de tendance"""
+        """Extrait les caractéristiques de tendance
+        
+        Cette méthode analyse les tendances dans les données en utilisant une approche de fenêtre glissante:
+        
+        1. Découpe les données en fenêtres de taille window_size (min entre 50 et len(data)/4)
+        2. Pour chaque fenêtre, calcule la pente de la régression linéaire
+        3. Extrait 4 caractéristiques à partir des pentes:
+           - Pente globale: pente de la première fenêtre
+           - Variation des pentes: écart-type des pentes de toutes les fenêtres  
+           - Moyenne des pentes: moyenne des pentes de toutes les fenêtres
+           - IQR des pentes: écart interquartile (Q3-Q1) des pentes
+           
+        Args:
+            data: Série temporelle à analyser
+            
+        Returns:
+            Liste de 4 caractéristiques de tendance, ou [nan, nan, nan, nan] en cas d'erreur
+        """
         try:
             # Calcul vectorisé des tendances locales
             window_size = min(50, len(data) // 4)
@@ -150,7 +167,37 @@ class FeatureExtractor:
     
     # @timing_decorator
     def _extract_cyclic_features(self, data):
-        """Extrait les caractéristiques cycliques"""
+        """Extrait les caractéristiques cycliques
+        
+        Cette méthode analyse les aspects cycliques/périodiques du signal en calculant:
+        
+        1. L'autocorrélation du signal:
+           - Normalise d'abord le signal en soustrayant la moyenne
+           - Calcule l'autocorrélation via np.correlate
+           - Normalise par la variance pour avoir des valeurs entre -1 et 1
+           
+        2. Détection des pics dans l'autocorrélation:
+           - Cherche les pics significatifs (hauteur > 0.2) espacés d'au moins 10 points
+           - Extrait la position et la valeur du premier pic trouvé
+           - Un pic indique une périodicité dans le signal
+           
+        3. Analyse des pics dans le signal original:
+           - Détecte les pics espacés d'au moins 5 points
+           - Compte le nombre total de pics
+           - Calcule la distance moyenne entre pics successifs
+           
+        Args:
+            data: Série temporelle à analyser
+            
+        Returns:
+            Liste de 4 caractéristiques cycliques:
+            - Valeur du premier pic d'autocorrélation 
+            - Position (lag) du premier pic
+            - Nombre total de pics dans le signal
+            - Distance moyenne entre pics successifs
+            
+            Retourne [nan, nan, nan, nan] en cas d'erreur
+        """
         try:
             # Calcul de l'autocorrélation
             n = len(data)
@@ -204,7 +251,40 @@ class FeatureExtractor:
         return np.correlate(normalized_data, normalized_data, 'full')[n-1:] / (var * n)
     
     def _extract_frequency_features(self, data):
-        """Extrait les caractéristiques fréquentielles"""
+        """Extrait les caractéristiques fréquentielles
+        
+        Cette méthode calcule plusieurs caractéristiques dans le domaine fréquentiel:
+        
+        1. Transformée de Fourier rapide (FFT):
+           - Convertit le signal temporel en composantes fréquentielles
+           - Ne garde que les fréquences positives pour éviter la redondance
+        
+        2. Fréquence dominante:
+           - Trouve la fréquence ayant la plus grande amplitude
+           - Retourne sa valeur et son amplitude
+        
+        3. Centroïde spectral:
+           - Représente le "centre de masse" du spectre fréquentiel
+           - Indique où se concentre l'énergie du signal
+        
+        4. Dispersion spectrale:
+           - Mesure l'étalement des fréquences autour du centroïde
+           - Une grande dispersion indique un signal riche en fréquences
+        
+        5. Point de coupure spectral:
+           - Fréquence en dessous de laquelle se trouve 85% de l'énergie
+           - Caractérise la distribution de l'énergie spectrale
+        
+        6. Flux spectral:
+           - Mesure les variations d'amplitude entre fréquences adjacentes
+           - Indique la "rugosité" du spectre
+        
+        Args:
+            data: Série temporelle à analyser
+            
+        Returns:
+            Liste des 6 caractéristiques fréquentielles
+        """
         try:
             # Calculer la FFT
             n = len(data)

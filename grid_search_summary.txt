@@ -1,0 +1,28 @@
+Grid Search Results Summary
+==================================================
+
+Best Configuration:
+Score: 0.9753
+classifier__max_depth: 20
+classifier__min_samples_split: 5
+classifier__n_estimators: 300
+
+All Configurations Ranked:
+
+Rank 2:
+Score: 0.9753
+classifier__n_estimators: 300
+classifier__max_depth: 20
+classifier__min_samples_split: 5
+
+Rank 1:
+Score: 0.9746
+classifier__n_estimators: 300
+classifier__max_depth: 20
+classifier__min_samples_split: 2
+
+Rank 3:
+Score: 0.9700
+classifier__n_estimators: 300
+classifier__max_depth: 20
+classifier__min_samples_split: 10

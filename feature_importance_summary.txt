@@ -1,0 +1,32 @@
+Feature Importance Analysis
+==================================================
+
+Number of features needed for 90% importance: 370
+
+Top 20 Most Important Features:
+1. Chest_Acceleration_x_slope_error: 1.16%
+2. Chest_Acceleration_x_max: 1.00%
+3. Chest_Acceleration_x_local_trend_std: 1.00%
+4. Hand_Acceleration_y_q3: 0.90%
+5. Hand_Acceleration_z_median: 0.87%
+6. Hand_Temperature_max: 0.84%
+7. Hand_Temperature_min: 0.79%
+8. Hand_Temperature_mean: 0.77%
+9. Chest_Acceleration_x_std: 0.75%
+10. Hand_Acceleration_y_max: 0.75%
+11. Chest_Acceleration_z_slope_error: 0.68%
+12. Hand_Acceleration_x_local_trend_std: 0.66%
+13. Hand_Acceleration_y_peak_mean_distance: 0.64%
+14. Hand_Temperature_q1: 0.64%
+15. Hand_Acceleration_x_spectral_centroid: 0.64%
+16. Hand_Acceleration_x_spectral_rolloff: 0.64%
+17. Hand_Acceleration_z_mean: 0.63%
+18. Hand_Acceleration_x_spectral_spread: 0.61%
+19. Hand_Acceleration_z_q3: 0.61%
+20. Hand_Acceleration_y_stability: 0.61%
+
+Feature Importance Statistics:
+Mean importance: 0.11%
+Median importance: 0.04%
+Standard deviation: 0.16%
+Number of features with >1% importance: 2
